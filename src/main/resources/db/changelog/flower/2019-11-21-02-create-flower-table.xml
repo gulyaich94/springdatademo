@@ -9,14 +9,14 @@
     <changeSet id="2019-11-21-02-create-flower-table" author="gulyaich">
         <sql>
             CREATE TABLE FLOWER (
-                FLOWER_ID BIGINT NOT NULL,
+                ID int(5) NULL,
                 NAME varchar(255) NOT NULL,
                 COLOR varchar(100) NOT NULL,
                 DESCRIPTION varchar NOT NULL,
                 PRICE DECIMAL(15, 2) NOT NULL,
                 COUNT int NOT NULL,
 
-                PRIMARY KEY(FLOWER_ID)
+                PRIMARY KEY(ID)
             );
         </sql>
         <rollback>

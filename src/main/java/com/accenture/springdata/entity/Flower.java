@@ -25,6 +25,7 @@ import java.math.BigDecimal;
 public class Flower {
 
     @Id
+//    @GeneratedValue
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
     @SequenceGenerator(name = "sequenceGenerator", sequenceName="SEQ_FLOWER_ID", allocationSize = 1)
     private Long id;
