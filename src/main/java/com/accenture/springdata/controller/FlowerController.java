@@ -4,6 +4,8 @@ import com.accenture.springdata.entity.Flower;
 import com.accenture.springdata.exeption.FlowerNotFoundException;
 import com.accenture.springdata.repository.FlowerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @RestController
@@ -44,11 +47,11 @@ public class FlowerController {
 
     @GetMapping("/paging/{page}/{count}")
     public Page<Flower> getFlowerPaging(@PathVariable Integer page, @PathVariable Integer count) {
-        Pageable firstPageWithTwoElements = PageRequest.of(page, count);
-        return flowerRepository.findAll(firstPageWithTwoElements);
+        Pageable pageRequest = PageRequest.of(page, count);
+        return flowerRepository.findAll(pageRequest);
     }
 
-    @GetMapping("sorting/{field}/{direction}")
+    @GetMapping("/sorting/{field}/{direction}")
     public List<Flower> getFlowerSorting(@PathVariable String field, @PathVariable String direction) {
         Sort sort = null;
         if ("desc".equals(direction)) {
@@ -59,4 +62,35 @@ public class FlowerController {
         return flowerRepository.findAll(sort);
     }
 
+    @GetMapping("/paging-sorting/{page}/{count}/{field}/{direction}")
+    public Page<Flower> getFlowerPagingSorting(@PathVariable Integer page, @PathVariable Integer count,
+                                               @PathVariable String field, @PathVariable String direction) {
+        Sort sort = null;
+        if ("desc".equals(direction)) {
+            sort = Sort.by(field).descending();
+        } else {
+            sort = Sort.by(field).ascending();
+        }
+        Pageable pageRequest = PageRequest.of(page, count, sort);
+        return flowerRepository.findAll(pageRequest);
+    }
+
+    @GetMapping("/example/{name}/{color}")
+    public Flower getFlowerByExample(@PathVariable String name, @PathVariable String color) {
+
+        Flower exampleFlower = Flower.builder().name(name).color(color).build();
+
+        ExampleMatcher caseInsensitiveExampleMatcher = ExampleMatcher.matchingAll().withIgnoreCase();
+        Example<Flower> example = Example.of(exampleFlower, caseInsensitiveExampleMatcher);
+        Optional<Flower> result = flowerRepository.findOne(example);
+
+//        ExampleMatcher ignoringExampleMatcher = ExampleMatcher.matchingAny()
+//                .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.startsWith().ignoreCase())
+//                .withIgnorePaths("color", "count");
+//        Example<Flower> example1 = Example.of(exampleFlower, ignoringExampleMatcher);
+//        List<Flower> result = flowerRepository.findAll(example1);
+
+        //Example<Flower> fl = Example.of(new Flower("Rose"), ExampleMatcher.matchingAny());
+        return result.get();
+    }
 }
