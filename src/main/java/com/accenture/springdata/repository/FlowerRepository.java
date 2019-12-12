@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface FlowerRepository extends JpaRepository<Flower, Long> {
+public interface FlowerRepository extends JpaRepository<Flower, Long>, CustomFlowerDao<Flower>, QuerydslPredicateExecutor<Flower> {
 
     // поиск цветов по цвету
     List<Flower> findByColor(String color);

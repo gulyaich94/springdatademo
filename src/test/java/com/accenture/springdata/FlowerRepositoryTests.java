@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import static com.accenture.springdata.common.Color.randomColor;
 import static com.accenture.springdata.common.FlowerName.randomName;
@@ -227,6 +228,107 @@ public class FlowerRepositoryTests {
         Flower result3 = flowerRepository.findOne(example3).orElse(null);
 
         assertNull(result3);
+
+        flowerRepository.deleteAll();
+    }
+
+    @Test
+    public void getMaxPriceFlowerTest() {
+        int listSize = 10;
+        List<Flower> flowers = new ArrayList<>();
+        for (int i = 0; i < listSize; i++) {
+            Flower flower = Flower.builder()
+                    .color(randomColor())
+                    .count(RANDOM.nextInt(50))
+                    .description(RandomStringUtils.randomAlphabetic(40))
+                    .name(randomName())
+                    .price(randomPrice(100))
+                    .build();
+
+            flowers.add(flower);
+        }
+        flowerRepository.saveAll(flowers);
+
+        flowers.sort((Flower f1, Flower f2) ->
+                f2.getPrice().compareTo(f1.getPrice()));
+
+        Flower maxPriceFlower = flowerRepository.getFlowerWithMaxPrice().get(0);
+        isFlowersEquals(flowers.get(0), maxPriceFlower);
+
+        flowerRepository.deleteAll();
+    }
+
+    @Test
+    public void getFlowerCountTest() {
+        int listSize = 10;
+        List<Flower> flowers = new ArrayList<>();
+        for (int i = 0; i < listSize; i++) {
+            Flower flower = Flower.builder()
+                    .color(randomColor())
+                    .count(RANDOM.nextInt(50))
+                    .description(RandomStringUtils.randomAlphabetic(40))
+                    .name(randomName())
+                    .price(randomPrice(100))
+                    .build();
+
+            flowers.add(flower);
+        }
+        flowerRepository.saveAll(flowers);
+
+        List<Flower> flowerList = flowerRepository.findCountFlowerRandom(5);
+        assertEquals(5, flowerList.size());
+
+        flowerRepository.deleteAll();
+    }
+
+    @Test
+    public void auditFlowerTest() {
+        int listSize = 10;
+        List<Flower> flowers = new ArrayList<>();
+        long dateBeforeCreation = System.currentTimeMillis();
+        for (int i = 0; i < listSize; i++) {
+            Flower flower = Flower.builder()
+                    .color(randomColor())
+                    .count(RANDOM.nextInt(50))
+                    .description(RandomStringUtils.randomAlphabetic(40))
+                    .name(randomName())
+                    .price(randomPrice(100))
+                    .build();
+
+            flowers.add(flower);
+        }
+        flowerRepository.saveAll(flowers);
+        long dateAfterCreation = System.currentTimeMillis();
+
+        for (Flower flower : flowers) {
+            long createdDate = flower.getCreatedDate();
+            assertTrue(createdDate >= dateBeforeCreation);
+            assertTrue(createdDate <= dateAfterCreation);
+            assertEquals("Gulyaich", flower.getCreatedBy());
+        }
+
+        try {
+            TimeUnit.SECONDS.sleep(2);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        long dateBeforeModification = System.currentTimeMillis();
+        for (Flower flower : flowers) {
+            flower.setCount(flower.getCount() + 1);
+        }
+        flowerRepository.saveAll(flowers);
+        long dateAfterModification = System.currentTimeMillis();
+
+        List<Flower> foundedFlowers = flowerRepository.findAll(); // required get from db
+        for (Flower flower : foundedFlowers) {
+            long modifiedDate = flower.getLastModifiedDate();
+            assertTrue(modifiedDate >= dateBeforeModification);
+            assertTrue(modifiedDate <= dateAfterModification);
+            assertEquals("Gulyaich", flower.getModifiedBy());
+        }
+
+        flowerRepository.deleteAll();
     }
 
     private void getPageSortAndCompare(List<Flower> flowers, int page, int size, String property, String direction,
