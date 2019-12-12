@@ -15,6 +15,10 @@
                 DESCRIPTION varchar NOT NULL,
                 PRICE DECIMAL(15, 2) NOT NULL,
                 COUNT int NOT NULL,
+                CREATED_DATE bigint NOT NULL,
+                MODIFIED_DATE bigint,
+                CREATED_BY varchar NOT NULL,
+                MODIFIED_BY varchar,
 
                 PRIMARY KEY(ID)
             );

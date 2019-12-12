@@ -3,6 +3,7 @@ package com.accenture.springdata.controller;
 import com.accenture.springdata.entity.Flower;
 import com.accenture.springdata.exeption.FlowerNotFoundException;
 import com.accenture.springdata.repository.FlowerRepository;
+import com.accenture.springdata.service.FlowerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,6 +31,9 @@ public class FlowerController {
 
     @Autowired
     private FlowerRepository flowerRepository;
+
+    @Autowired
+    private FlowerService flowerService;
 
     @GetMapping("/greeting")
     public ResponseEntity<String> hello(@RequestParam(value = "name", defaultValue = "World") String name) {
@@ -77,20 +82,17 @@ public class FlowerController {
 
     @GetMapping("/example/{name}/{color}")
     public Flower getFlowerByExample(@PathVariable String name, @PathVariable String color) {
-
         Flower exampleFlower = Flower.builder().name(name).color(color).build();
+        return flowerService.findFlowersByExample(exampleFlower);
+    }
 
-        ExampleMatcher caseInsensitiveExampleMatcher = ExampleMatcher.matchingAll().withIgnoreCase();
-        Example<Flower> example = Example.of(exampleFlower, caseInsensitiveExampleMatcher);
-        Optional<Flower> result = flowerRepository.findOne(example);
+    @GetMapping("/maxprice")
+    public List<Flower> getMaxPriceFlower() {
+        return flowerRepository.getFlowerWithMaxPrice();
+    }
 
-//        ExampleMatcher ignoringExampleMatcher = ExampleMatcher.matchingAny()
-//                .withMatcher("name", ExampleMatcher.GenericPropertyMatchers.startsWith().ignoreCase())
-//                .withIgnorePaths("color", "count");
-//        Example<Flower> example1 = Example.of(exampleFlower, ignoringExampleMatcher);
-//        List<Flower> result = flowerRepository.findAll(example1);
-
-        //Example<Flower> fl = Example.of(new Flower("Rose"), ExampleMatcher.matchingAny());
-        return result.get();
+    @PostMapping("/changecount/{id}/{count}")
+    public void changeFlowerCount(@PathVariable Long id, @PathVariable Integer count) {
+        flowerService.changeFlowerCount(id, count);
     }
 }
