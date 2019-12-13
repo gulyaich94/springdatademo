@@ -206,7 +206,7 @@ public class FlowerRepositoryTests {
                 .name(flower1.getName().toUpperCase())
                 .color(flower1.getColor().toUpperCase())
                 .build();
-        ExampleMatcher caseInsensitiveExampleMatcher = ExampleMatcher.matchingAll().withIgnoreCase();
+        ExampleMatcher caseInsensitiveExampleMatcher = ExampleMatcher.matchingAny().withIgnoreCase();
         Example<Flower> example1 = Example.of(exampleFlower1, caseInsensitiveExampleMatcher);
         Flower result1 = flowerRepository.findOne(example1).orElse(null);
 
@@ -327,6 +327,28 @@ public class FlowerRepositoryTests {
             assertTrue(modifiedDate <= dateAfterModification);
             assertEquals("Gulyaich", flower.getModifiedBy());
         }
+
+        flowerRepository.deleteAll();
+    }
+
+    @Test
+    public void saveUpdateTest() {
+        Flower flower = Flower.builder()
+                .color(randomColor())
+                .count(RANDOM.nextInt(50))
+                .description(RandomStringUtils.randomAlphabetic(40))
+                .name(randomName())
+                .price(randomPrice(100))
+                .build();
+
+        flowerRepository.save(flower);
+        System.out.println(flower);
+        flower.setCount(flower.getCount() + 1);
+        flowerRepository.save(flower);
+        System.out.println(flower);
+        List<Flower> flowerList = flowerRepository.findAll();
+        System.out.println(flowerList);
+        assertEquals(1, flowerList.size());
 
         flowerRepository.deleteAll();
     }
