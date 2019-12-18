@@ -46,9 +46,6 @@ public interface FlowerRepository extends JpaRepository<Flower, Long>, CustomFlo
     List<Flower> findAllFlowers(Sort sort);
 
     @Transactional
-    int deleteByName(String name);
-
-    @Transactional
     @Modifying
     @Query(value = "delete from Flower f where f.name = :name", nativeQuery = true)
     int deleteFlowersByName(@Param("name") String name);
@@ -82,4 +79,18 @@ public interface FlowerRepository extends JpaRepository<Flower, Long>, CustomFlo
     @Lock(LockModeType.PESSIMISTIC_READ)
     @Query("SELECT f FROM Flower f WHERE f.id = :flowerId")
     Flower findFlowerToOrder(@Param("flowerId") Long flowerId);
+
+    @Transactional
+    int deleteByName(String name);
+
+    @Transactional
+    int removeByName(String name);
+
+    Flower getByName(String name);
+
+    Flower readByColor(String color);
+
+    int countByName(String name);
+
+    boolean existsByName(String name);
 }

@@ -26,6 +26,7 @@ import static com.accenture.springdata.common.Color.randomColor;
 import static com.accenture.springdata.common.FlowerName.randomName;
 import static com.accenture.springdata.common.FlowerUtils.randomPrice;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -73,6 +74,42 @@ public class FlowerRepositoryTests {
         flowerRepository.save(flower);
 
         Flower newFlower = flowerRepository.findById(flower.getId()).get();
+        isFlowersEquals(flower, newFlower);
+
+        flowerRepository.deleteAll();
+    }
+
+    @Test
+    public void getTest() {
+        Flower flower = Flower.builder()
+                .color(randomColor())
+                .count(RANDOM.nextInt(50))
+                .description(RandomStringUtils.randomAlphabetic(40))
+                .name(randomName())
+                .price(randomPrice(100))
+                .build();
+
+        flowerRepository.save(flower);
+
+        Flower newFlower = flowerRepository.getByName(flower.getName());
+        isFlowersEquals(flower, newFlower);
+
+        flowerRepository.deleteAll();
+    }
+
+    @Test
+    public void readTest() {
+        Flower flower = Flower.builder()
+                .color(randomColor())
+                .count(RANDOM.nextInt(50))
+                .description(RandomStringUtils.randomAlphabetic(40))
+                .name(randomName())
+                .price(randomPrice(100))
+                .build();
+
+        flowerRepository.save(flower);
+
+        Flower newFlower = flowerRepository.readByColor(flower.getColor());
         isFlowersEquals(flower, newFlower);
 
         flowerRepository.deleteAll();
@@ -178,7 +215,6 @@ public class FlowerRepositoryTests {
 
     @Test
     public void getFlowerByExampleTest() {
-        int listSize = 10;
         List<Flower> flowers = new ArrayList<>();
         Flower flower1 = Flower.builder()
                 .color("красный")
@@ -228,6 +264,37 @@ public class FlowerRepositoryTests {
         Flower result3 = flowerRepository.findOne(example3).orElse(null);
 
         assertNull(result3);
+
+        flowerRepository.deleteAll();
+    }
+
+    @Test
+    public void exampleMatchingAllTest() {
+        Flower flower = Flower.builder()
+                .color("красный")
+                .count(RANDOM.nextInt(50))
+                .description(RandomStringUtils.randomAlphabetic(40))
+                .name("тюльпан")
+                .price(randomPrice(100))
+                .build();
+
+        flowerRepository.save(flower);
+        ExampleMatcher matcher = ExampleMatcher.matchingAll()
+                .withIgnorePaths("color")
+                .withIgnorePaths("count")
+                .withIgnorePaths("description")
+                .withIgnorePaths("price")
+                .withIgnorePaths("createdDate")
+                .withIgnorePaths("lastModifiedDate")
+                .withIgnorePaths("createdBy")
+                .withIgnorePaths("modifiedBy");
+        Flower exFl = Flower.builder()
+                .name(flower.getName())
+                .build();
+        Example<Flower> ex = Example.of(exFl, matcher);
+        Flower res = flowerRepository.findOne(ex).orElse(null);
+
+        isFlowersEquals(flower, res);
 
         flowerRepository.deleteAll();
     }
@@ -349,6 +416,95 @@ public class FlowerRepositoryTests {
         List<Flower> flowerList = flowerRepository.findAll();
         System.out.println(flowerList);
         assertEquals(1, flowerList.size());
+
+        flowerRepository.deleteAll();
+    }
+
+    @Test
+    public void deleteByNameTest() {
+        Flower flower = Flower.builder()
+                .color(randomColor())
+                .count(RANDOM.nextInt(50))
+                .description(RandomStringUtils.randomAlphabetic(40))
+                .name(randomName())
+                .price(randomPrice(100))
+                .build();
+
+        flowerRepository.save(flower);
+
+        int count = flowerRepository.deleteByName(flower.getName());
+        assertEquals(1, count);
+        assertTrue(flowerRepository.findAll().isEmpty());
+    }
+
+    @Test
+    public void removeByNameTest() {
+        Flower flower = Flower.builder()
+                .color(randomColor())
+                .count(RANDOM.nextInt(50))
+                .description(RandomStringUtils.randomAlphabetic(40))
+                .name(randomName())
+                .price(randomPrice(100))
+                .build();
+
+        flowerRepository.save(flower);
+
+        int count = flowerRepository.removeByName(flower.getName());
+        assertEquals(1, count);
+        assertTrue(flowerRepository.findAll().isEmpty());
+    }
+
+    @Test
+    public void countByNameTest() {
+        Flower flower = Flower.builder()
+                .color(randomColor())
+                .count(RANDOM.nextInt(50))
+                .description(RandomStringUtils.randomAlphabetic(40))
+                .name("тюльпан")
+                .price(randomPrice(100))
+                .build();
+
+        flowerRepository.save(flower);
+
+        Flower flower1 = Flower.builder()
+                .color(randomColor())
+                .count(RANDOM.nextInt(50))
+                .description(RandomStringUtils.randomAlphabetic(40))
+                .name("роза")
+                .price(randomPrice(100))
+                .build();
+
+        flowerRepository.save(flower1);
+
+        assertEquals(1, flowerRepository.countByName(flower.getName()));
+
+        flowerRepository.deleteAll();
+    }
+
+    @Test
+    public void existsByNameTest() {
+        Flower flower = Flower.builder()
+                .color(randomColor())
+                .count(RANDOM.nextInt(50))
+                .description(RandomStringUtils.randomAlphabetic(40))
+                .name("тюльпан")
+                .price(randomPrice(100))
+                .build();
+
+        flowerRepository.save(flower);
+
+        Flower flower1 = Flower.builder()
+                .color(randomColor())
+                .count(RANDOM.nextInt(50))
+                .description(RandomStringUtils.randomAlphabetic(40))
+                .name("роза")
+                .price(randomPrice(100))
+                .build();
+
+        flowerRepository.save(flower1);
+
+        assertTrue(flowerRepository.existsByName(flower.getName()));
+        assertFalse(flowerRepository.existsByName("одуванчик"));
 
         flowerRepository.deleteAll();
     }
